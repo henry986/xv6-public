@@ -8,6 +8,13 @@
 #include "proc.h"
 
 int
+sys_halt(void)
+{
+  outb(0xf4, 0x00);
+  return 0;
+}
+
+int
 sys_fork(void)
 {
   return fork();
@@ -88,4 +95,43 @@ sys_uptime(void)
   xticks = ticks;
   release(&tickslock);
   return xticks;
+}
+
+int
+sys_yield(void) {
+  yield();
+  return 0;
+}
+
+//以下為這次實做的system call
+int
+sys_APS(void)
+{
+  return APS();
+}
+
+int
+sys_CPP(void)
+{
+  int pid, priority;
+
+  //xv6必須使用argint()才能把參數傳進kernal的function
+  if(argint(0, &pid) < 0) //如果pid小於0，傳回錯誤訊息
+    return -1;
+  if(argint(1, &priority) < 0) //如果priority小於0，傳回錯誤訊息
+    return -1;
+
+  return CPP(pid, priority);
+}
+
+int
+sys_SPS(void)
+{
+  int pid;
+
+  //xv6必須使用argint()才能把參數傳進kernal的function
+  if(argint(0, &pid) < 0) //如果pid小於0，傳回錯誤訊息
+    return -1;
+
+  return SPS(pid);
 }

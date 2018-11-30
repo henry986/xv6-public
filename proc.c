@@ -88,7 +88,7 @@ allocproc(void)
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
-
+  p->priority = 10;
   release(&ptable.lock);
 
   // Allocate kernel stack.
@@ -323,6 +323,8 @@ void
 scheduler(void)
 {
   struct proc *p;
+  struct proc *p1;
+  
   struct cpu *c = mycpu();
   c->proc = 0;
   
@@ -330,12 +332,27 @@ scheduler(void)
     // Enable interrupts on this processor.
     sti();
 
+    //highp records the process with the highest priority
+    struct proc *highP = 0;
+   
+
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)
         continue;
 
+    
+      highP = p;
+      //選擇有最高priority的process
+      for(p1 = ptable.proc; p1 < &ptable.proc[NPROC]; p1++){
+        if(p1->state != RUNNABLE)
+          continue;
+        if( highP->priority > p1->priority ) //數字越小，priority越前面
+          highP = p1;
+      }
+      p = highP;
+     
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
@@ -343,7 +360,7 @@ scheduler(void)
       switchuvm(p);
       p->state = RUNNING;
 
-      swtch(&(c->scheduler), p->context);
+      swtch(&(c->scheduler), p->context); //當process結束或是process的使用時間到時就會return
       switchkvm();
 
       // Process is done running for now.
@@ -352,7 +369,7 @@ scheduler(void)
     }
     release(&ptable.lock);
 
-  }
+}
 }
 
 // Enter scheduler.  Must hold only ptable.lock
@@ -531,4 +548,80 @@ procdump(void)
     }
     cprintf("\n");
   }
+}
+
+int
+APS()
+{
+  struct proc *p;
+  sti();
+  acquire(&ptable.lock);
+  cprintf("Process \tPid \t State \t \t Priority \n");
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+	switch(p->state){
+	case SLEEPING:
+  		cprintf("%s \t\t %d \t SLEEPING \t    %d \n ", p->name, p->pid, p->priority);
+  		break;
+  	case RUNNABLE:
+		cprintf("%s \t\t %d \t RUNNABLE \t    %d \n ", p->name, p->pid, p->priority);
+  		break;
+  	case RUNNING:
+  		cprintf("%s \t\t %d \t RUNNING \t    %d \n ", p->name, p->pid, p->priority);
+		break;
+        default:
+		break;
+	}
+  }
+  release(&ptable.lock);
+  
+  return 24;
+}
+
+// 改變process的priority
+int
+CPP(int pid, int priority)
+{
+  struct proc *p;
+  
+  acquire(&ptable.lock); //用lock來保護這段程式碼
+  //Loop過ptable,找到要改priority的process並更改成指定的priority
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->pid == pid) { //如果process的pid等於system call傳進來的pid
+        p->priority = priority; //就把process的priority改成新的priority
+        break;
+    }
+  }
+  release(&ptable.lock); //釋出lock
+
+  return pid;
+}
+
+int
+SPS(int pid)
+{
+  struct proc *p;
+  
+  acquire(&ptable.lock); //用lock來保護這段程式碼
+
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->pid == pid){
+    	switch(p->state){
+	case SLEEPING:
+  		cprintf("Process [%s] is SLEEPING \n ", p->name);
+  		break;
+  	case RUNNABLE:
+		cprintf("Process [%s] is RUNNABLE \n ", p->name);
+  		break;
+  	case RUNNING:
+  		cprintf("Process [%s] is RUNNING \n ", p->name);
+		break;
+       	 default:
+		break;
+	}
+    }
+ 
+  }
+  release(&ptable.lock); //釋出lock
+
+  return pid;
 }
