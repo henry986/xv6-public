@@ -25,3 +25,4 @@
 #define SYS_APS    24
 #define SYS_CPP    25
 #define SYS_SPS    26
+#define SYS_CSP    27

@@ -143,7 +143,7 @@ tags: $(OBJS) entryother.S _init
 vectors.S: vectors.pl
 	./vectors.pl > vectors.S
 
-ULIB = ulib.o usys.o printf.o umalloc.o
+ULIB = ulib.o usys.o printf.o scanf.o umalloc.o
 
 _%: %.o $(ULIB)
 	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o $@ $^
@@ -186,6 +186,7 @@ UPROGS=\
 	_ps\
 	_gp\
 	_sps\
+	_PC\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)
@@ -260,6 +261,8 @@ EXTRA=\
 	ps.c\
 	gp.c\
 	sps.c\
+	PC.c\
+	scanf.c\
         printf.c umalloc.c\
 	README dot-bochsrc *.pl toc.* runoff runoff1 runoff.list\
         .gdbinit.tmpl gdbutil\

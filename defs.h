@@ -123,6 +123,7 @@ void            yield(void);
 int             APS(void);
 int 		CPP(int pid, int priority);
 int		SPS(int pid);
+int		CSP(int policy);
 
 // swtch.S
 void            swtch(struct context**, struct context*);

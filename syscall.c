@@ -108,6 +108,7 @@ extern int sys_yield(void);
 extern int sys_APS(void);
 extern int sys_CPP(void);
 extern int sys_SPS(void);
+extern int sys_CSP(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -136,6 +137,7 @@ static int (*syscalls[])(void) = {
 [SYS_APS]     sys_APS,
 [SYS_CPP]     sys_CPP,
 [SYS_SPS]     sys_SPS,
+[SYS_CSP]     sys_CSP,
 };
 
 void

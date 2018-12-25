@@ -89,6 +89,7 @@ found:
   p->state = EMBRYO;
   p->pid = nextpid++;
   p->priority = 10;
+  p->SchedulingPolicy = 1;
   release(&ptable.lock);
 
   // Allocate kernel stack.
@@ -335,12 +336,14 @@ scheduler(void)
     //highp records the process with the highest priority
     struct proc *highP = 0;
    
-
+    
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)
         continue;
+    
+    if(p->SchedulingPolicy == 2){
 
     
       highP = p;
@@ -352,7 +355,7 @@ scheduler(void)
           highP = p1;
       }
       p = highP;
-     
+     }
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
@@ -624,4 +627,21 @@ SPS(int pid)
   release(&ptable.lock); //釋出lock
 
   return pid;
+}
+
+int CSP(int policy)
+{
+   struct proc *p;
+   acquire(&ptable.lock); //用lock來保護這段程式碼
+   
+   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+	if(policy==1){
+  	  p->SchedulingPolicy=1;
+	}
+	if(policy==2){
+  	  p->SchedulingPolicy=2;
+	}
+   }
+   release(&ptable.lock); //釋出lock
+   return 0;
 }

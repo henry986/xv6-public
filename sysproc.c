@@ -135,3 +135,14 @@ sys_SPS(void)
 
   return SPS(pid);
 }
+int
+sys_CSP(void)
+{
+  int policy;
+
+  //xv6必須使用argint()才能把參數傳進kernal的function
+  if(argint(0, &policy) < 0) //如果pid小於0，傳回錯誤訊息
+    return -1;
+
+  return CSP(policy);
+}
